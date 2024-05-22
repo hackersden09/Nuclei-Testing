@@ -5,7 +5,7 @@ on:
     workflow_dispatch:
 
 jobs:
-    set-plugins:
+    nuclei-scan:
         runs-on: ubuntu-latest
         steps:
             - name: Download nuclei
@@ -17,7 +17,7 @@ jobs:
             - name: Run nuclei
               run: |
                chmod 755 ${{runner.temp}}/nuclei;
-               ${{runner.temp}}/nuclei -tags network -u https://scanme.nmap.org; -o ${{runner.temp}}/nuclei.out
+               ${{runner.temp}}/nuclei -tags network -u https://scanme.nmap.org -o ${{runner.temp}}/nuclei.out
               shell: bash
 
             - name: Upload scan result
