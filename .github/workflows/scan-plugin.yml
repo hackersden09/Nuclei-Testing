@@ -1,0 +1,27 @@
+name: 'Nuclei Scan'
+on:
+    push:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    set-plugins:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download nuclei
+              run: |
+               wget https://github.com/projectdiscovery/nuclei/releases/download/v3.2.7/nuclei_3.2.7_linux_amd64.zip -O ${{runner.temp}}/nuclei.zip;
+               unzip ${{runner.temp}}/nuclei.zip -d ${{runner.temp}}
+              shell: bash
+
+            - name: Run nuclei
+              run: |
+               chmod 755 ${{runner.temp}}/nuclei;
+               ${{runner.temp}}/nuclei -tags network -u https://scanme.nmap.org; -o ${{runner.temp}}/nuclei.out
+              shell: bash
+
+            - name: Upload scan result
+              uses: actions/upload-artifact@v4
+              with:
+                name: nuclei-scan-result
+                path: ${{runner.temp}}/nuclei.out
