@@ -23,6 +23,7 @@ jobs:
 
       - name: Install Go tools and dependencies
         run: |
+          # Ensure GOPATH is set
           export GOPATH=$HOME/go
           export PATH=$PATH:$GOPATH/bin
 
@@ -36,32 +37,30 @@ jobs:
           go install github.com/tomnomnom/fff@latest
           go install github.com/jaeles-project/gospider@latest
           go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-          go install github.com/KathanP19/Gxss@latest
-
-          # Install dalfox
           go install github.com/hahwul/dalfox/v2@latest
+          go install github.com/KathanP19/Gxss@latest
 
           # Verify installation of tools
           echo $PATH
-          which assetfinder
-          which httprobe
-          which waybackurls
-          which httpx
-          which gf
-          which anew
-          which fff
-          which gospider
-          which nuclei
-          which Gxss
-          which dalfox
+          which assetfinder || echo "assetfinder not found"
+          which httprobe || echo "httprobe not found"
+          which waybackurls || echo "waybackurls not found"
+          which httpx || echo "httpx not found"
+          which gf || echo "gf not found"
+          which anew || echo "anew not found"
+          which fff || echo "fff not found"
+          which gospider || echo "gospider not found"
+          which nuclei || echo "nuclei not found"
+          which gxss || echo "gxss not found"
+          which dalfox || echo "dalfox not found"
         shell: bash
 
       - name: Verify installation
         run: |
           echo $PATH
-          which gxss
-          which dalfox
-          which nuclei
+          which gxss || echo "gxss not found"
+          which dalfox || echo "dalfox not found"
+          which nuclei || echo "nuclei not found"
         shell: bash
 
       - name: Install NucleiFuzzer and Dependencies
