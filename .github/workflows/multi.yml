@@ -24,6 +24,11 @@ jobs:
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/waybackurls@latest
           go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+          
+          # Install additional tools
+          sudo apt-get update
+          sudo apt-get install -y anew fff
+          go install github.com/tomnomnom/gf@latest
         shell: bash
 
       - name: Run assetfinder
@@ -46,6 +51,15 @@ jobs:
           cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > ${{runner.temp}}/httpx.out
         shell: bash
 
+      - name: Additional Commands
+        run: |
+          cat ${{runner.temp}}/httprobe.out | anew ${{runner.temp}}/domains
+          cat ${{runner.temp}}/domains | ~/go/bin/httprobe -c 50 | anew ${{runner.temp}}/hosth
+          cat ${{runner.temp}}/hosth | fff -d 1 -S -o ${{runner.temp}}/roots
+          ~/go/bin/gf meg-headers < ${{runner.temp}}/roots
+          ~/go/bin/gf servers < ${{runner.temp}}/roots | anew ${{runner.temp}}/gf-servers
+        shell: bash
+
       - name: Display results
         run: |
           echo -e "\n\033[1;34m=== Assetfinder Results ===\033[0m"
@@ -63,6 +77,13 @@ jobs:
           echo -e "\n\033[1;34m=== HTTPX Results ===\033[0m"
           cat ${{runner.temp}}/httpx.out
           echo -e "\033[1;34m=== End of HTTPX Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== Additional Results ===\033[0m"
+          cat ${{runner.temp}}/domains
+          cat ${{runner.temp}}/hosth
+          cat ${{runner.temp}}/roots
+          cat ${{runner.temp}}/gf-servers
+          echo -e "\033[1;34m=== End of Additional Results ===\033[0m\n"
         shell: bash
 
       - name: Upload scan results
@@ -74,3 +95,7 @@ jobs:
             ${{runner.temp}}/httprobe.out
             ${{runner.temp}}/waybackurls.out
             ${{runner.temp}}/httpx.out
+            ${{runner.temp}}/domains
+            ${{runner.temp}}/hosth
+            ${{runner.temp}}/roots
+            ${{runner.temp}}/gf-servers
