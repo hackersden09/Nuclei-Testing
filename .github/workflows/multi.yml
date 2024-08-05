@@ -35,14 +35,25 @@ jobs:
           go install github.com/tomnomnom/anew@latest
           go install github.com/tomnomnom/fff@latest
           go install github.com/jaeles-project/gospider@latest
-          go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+          go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
           go install github.com/KathanP19/Gxss@latest
 
-          # Clone and install dalfox
-          git clone https://github.com/hahwul/dalfox.git
-          cd dalfox
-          go install
-          cd ..
+          # Install dalfox
+          go install github.com/hahwul/dalfox/v2@latest
+
+          # Verify installation of tools
+          echo $PATH
+          which assetfinder
+          which httprobe
+          which waybackurls
+          which httpx
+          which gf
+          which anew
+          which fff
+          which gospider
+          which nuclei
+          which Gxss
+          which dalfox
         shell: bash
 
       - name: Verify installation
