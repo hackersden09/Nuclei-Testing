@@ -1,4 +1,4 @@
-name: 'Tomnomnom Tools Scan'
+name: 'Hackersden Tools Scan'
 on:
   push:
     branches: ["main"]
