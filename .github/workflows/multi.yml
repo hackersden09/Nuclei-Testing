@@ -33,7 +33,7 @@ jobs:
 
       - name: Run httprobe
         run: |
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe --prefer-https > ${{runner.temp}}/httprobe.out
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe -p 80,443 > ${{runner.temp}}/httprobe.out
         shell: bash
 
       - name: Run waybackurls
