@@ -25,7 +25,7 @@ jobs:
 
       - name: Run assetfinder
         run: |
-          assetfinder --subs-only ginandjuice.shop > ${{runner.temp}}/assetfinder.out
+          ~/go/bin/assetfinder --subs-only ginandjuice.shop > ${{runner.temp}}/assetfinder.out
         shell: bash
 
       - name: Run httprobe
