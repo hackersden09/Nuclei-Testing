@@ -1,4 +1,3 @@
-
 name: 'Tomnomnom Tools Scan'
 on:
   push:
@@ -25,7 +24,7 @@ jobs:
 
       - name: Run assetfinder
         run: |
-          ~/go/bin/assetfinder --subs-only ginandjuice.shop > ${{runner.temp}}/assetfinder.out
+          ~/go/bin/assetfinder --subs-only example.com > ${{runner.temp}}/assetfinder.out
         shell: bash
 
       - name: Run httprobe
@@ -38,6 +37,16 @@ jobs:
           cat ${{runner.temp}}/httprobe.out | ~/go/bin/gf xss > ${{runner.temp}}/gf-xss.out
         shell: bash
 
+      - name: Display results
+        run: |
+          echo "Assetfinder Results:"
+          cat ${{runner.temp}}/assetfinder.out
+          echo "HTTProbe Results:"
+          cat ${{runner.temp}}/httprobe.out
+          echo "GF XSS Results:"
+          cat ${{runner.temp}}/gf-xss.out
+        shell: bash
+
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
@@ -46,18 +55,3 @@ jobs:
             ${{runner.temp}}/assetfinder.out
             ${{runner.temp}}/httprobe.out
             ${{runner.temp}}/gf-xss.out
-            
-        - name: View results
-        run: |
-        
-          echo "assetfinder result"
-
-          cat ${{runner.temp}}/assetfinder.out
-          
-          echo "Http Probe result"
-          
-          cat ${{runner.temp}}/httprobe.out
-          cat ${{runner.temp}}/gf-xss.out
-
-        
-        
