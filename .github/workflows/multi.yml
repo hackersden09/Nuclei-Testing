@@ -29,6 +29,7 @@ jobs:
 
           # Install Go tools using go install with versions
           go install github.com/tomnomnom/assetfinder@latest
+          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/waybackurls@latest
           go install github.com/projectdiscovery/httpx/cmd/httpx@latest
@@ -43,6 +44,7 @@ jobs:
           # Verify installation of tools
           echo $PATH
           which assetfinder || echo "assetfinder not found"
+          which subfinder || echo "subfinder not found"
           which httprobe || echo "httprobe not found"
           which waybackurls || echo "waybackurls not found"
           which httpx || echo "httpx not found"
