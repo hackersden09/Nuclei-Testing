@@ -30,12 +30,12 @@ jobs:
 
       - name: Run httprobe
         run: |
-          cat ${{runner.temp}}/assetfinder.out | httprobe > ${{runner.temp}}/httprobe.out
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe > ${{runner.temp}}/httprobe.out
         shell: bash
 
       - name: Run gf
         run: |
-          cat ${{runner.temp}}/httprobe.out | gf xss > ${{runner.temp}}/gf-xss.out
+          cat ${{runner.temp}}/httprobe.out | ~/go/bin/gf xss > ${{runner.temp}}/gf-xss.out
         shell: bash
 
       - name: Upload scan results
