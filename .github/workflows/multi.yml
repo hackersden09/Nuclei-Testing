@@ -21,14 +21,6 @@ jobs:
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/waybackurls@latest
-          
-          # Install crtsh
-          mkdir -p ~/go/src/github.com/tomnomnom/crtsh
-          curl -o ~/go/src/github.com/tomnomnom/crtsh/crtsh.go https://raw.githubusercontent.com/tomnomnom/assetfinder/master/crtsh.go
-          cd ~/go/src/github.com/tomnomnom/crtsh
-          go build -o ~/go/bin/crtsh crtsh.go
-          
-          # Install httpx
           go install github.com/projectdiscovery/httpx/cmd/httpx@latest
           
           # Download GF patterns
@@ -36,6 +28,51 @@ jobs:
           cd ~/.gf
           git clone https://github.com/1ndianl33t/Gf-Patterns.git
           mv Gf-Patterns/*.json ./
+          
+          # Create crtsh tool
+          mkdir -p ~/go/src/github.com/tomnomnom/crtsh
+          cat <<EOF > ~/go/src/github.com/tomnomnom/crtsh/main.go
+          package main
+
+          import (
+            "encoding/json"
+            "fmt"
+            "net/http"
+            "os"
+          )
+
+          type crtshEntry struct {
+            NameValue string `json:"name_value"`
+          }
+
+          func main() {
+            if len(os.Args) != 2 {
+              fmt.Printf("Usage: %s <domain>\\n", os.Args[0])
+              os.Exit(1)
+            }
+            domain := os.Args[1]
+            url := fmt.Sprintf("https://crt.sh/?q=%%25.%s&output=json", domain)
+
+            resp, err := http.Get(url)
+            if err != nil {
+              fmt.Println("Error fetching crt.sh data:", err)
+              os.Exit(1)
+            }
+            defer resp.Body.Close()
+
+            var entries []crtshEntry
+            if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+              fmt.Println("Error decoding JSON:", err)
+              os.Exit(1)
+            }
+
+            for _, entry := range entries {
+              fmt.Println(entry.NameValue)
+            }
+          }
+          EOF
+          cd ~/go/src/github.com/tomnomnom/crtsh
+          go build -o ~/go/bin/crtsh
         shell: bash
 
       - name: Run assetfinder
@@ -97,7 +134,7 @@ jobs:
           cat ${{runner.temp}}/gf-base64.out
           echo -e "\033[1;34m=== End of GF Base64 Results ===\033[0m\n"
           
-          echo -e "\n\033[1;34m=== GF XSS Results ===\033{0m"
+          echo -e "\n\033[1;34m=== GF XSS Results ===\033[0m"
           cat ${{runner.temp}}/gf-xss.out
           echo -e "\033[1;34m=== End of GF XSS Results ===\033[0m\n"
           
