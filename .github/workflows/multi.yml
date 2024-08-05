@@ -20,11 +20,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl jq git
-          # Clone and install gxss
+          # Clone and check for any setup instructions for gxss
           git clone https://github.com/KathanP19/Gxss.git
           cd Gxss
-          python3 setup.py install
-        shell: bash
+          # If it's not a Go module or setup script, confirm the next steps
+          cd ..
 
       - name: Install Go tools
         run: |
@@ -39,11 +39,12 @@ jobs:
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/anew@latest
           go install github.com/tomnomnom/fff@latest
-          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
           go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+          go install github.com/KathanP19/Gxss@latest
+
+          # Go Get is deprecated, so ensure usage of go install for tools
           go get -u github.com/tomnomnom/qsreplace
           go get -u github.com/jaeles-project/gospider
-          go get -u github.com/projectdiscovery/findomain
 
         shell: bash
 
