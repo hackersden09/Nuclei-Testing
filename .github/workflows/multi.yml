@@ -46,3 +46,20 @@ jobs:
             ${{runner.temp}}/assetfinder.out
             ${{runner.temp}}/httprobe.out
             ${{runner.temp}}/gf-xss.out
+            
+        - name: View results
+        run: |
+        
+          echo "assetfinder result"
+
+          cat ${{runner.temp}}/assetfinder.out
+          
+          echo "Http Probe result"
+          
+          cat ${{runner.temp}}/httprobe.out
+          cat ${{runner.temp}}/gf-xss.out
+
+          
+        shell: bash
+
+        
