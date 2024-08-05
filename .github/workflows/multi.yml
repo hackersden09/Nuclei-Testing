@@ -1,3 +1,11 @@
+To address the errors and ensure the correct installation of `dalfox` and other tools, you can update your GitHub Actions workflow as follows:
+
+1. Make sure to install `dalfox` from the source as it might not be available via pip.
+2. Correctly install all necessary tools and dependencies.
+
+Here is the updated workflow:
+
+```yaml
 name: 'Security Tools Scan'
 on:
   push:
@@ -20,7 +28,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl jq
-          pip3 install dalfox gxss
+          pip3 install gxss
+
+      - name: Install dalfox
+        run: |
+          git clone https://github.com/hahwul/dalfox
+          cd dalfox
+          go install
+          cd ..
+        shell: bash
 
       - name: Install Go tools
         run: |
@@ -126,7 +142,6 @@ jobs:
           # Collect .js files
           assetfinder testphp.vulnweb.com | ~/go/bin/waybackurls | grep -E "\\.js(?:onp?)?$" | ~/go/bin/anew
 
-          
           # Vulnerability detection
           cat "${{ runner.temp }}/waybackurl" | grep "php?id="
           cat "${{ runner.temp }}/waybackurl" | grep ".xlsx"
@@ -135,6 +150,4 @@ jobs:
           cat "${{ runner.temp }}/waybackurl" | grep '=' | qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done
 
           # Collect JS files using gau
-          gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee "${{ runner.temp }}/urls.txt"
-          sort -u "${{ runner.temp }}/urls.txt" | ~/go/bin/fff -o "${{ runner.temp }}/jsfiles"
-        shell: bash
+          gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.
