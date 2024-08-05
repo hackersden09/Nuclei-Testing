@@ -19,8 +19,12 @@ jobs:
       - name: Install Python and other dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3 python3-pip curl jq
-          pip3 install gxss
+          sudo apt-get install -y python3 python3-pip curl jq git
+          # Clone and install gxss
+          git clone https://github.com/KathanP19/Gxss.git
+          cd Gxss
+          python3 setup.py install
+        shell: bash
 
       - name: Install Go tools
         run: |
