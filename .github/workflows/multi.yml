@@ -20,6 +20,24 @@ jobs:
           go install github.com/tomnomnom/assetfinder@latest
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/gf@latest
+          go install github.com/tomnomnom/waybackurls@latest
+          go install github.com/tomnomnom/me@latest
+          
+          # Install crtsh
+          mkdir -p ~/go/src/github.com/tomnomnom
+          cd ~/go/src/github.com/tomnomnom
+          git clone https://github.com/tomnomnom/assetfinder.git
+          cd assetfinder
+          go build -o ~/go/bin/crtsh crtsh.go
+          
+          # Install httpx
+          go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+          
+          # Download GF patterns
+          mkdir -p ~/.gf
+          cd ~/.gf
+          git clone https://github.com/1ndianl33t/Gf-Patterns.git
+          mv Gf-Patterns/*.json ./
         shell: bash
 
       - name: Run assetfinder
@@ -29,12 +47,27 @@ jobs:
 
       - name: Run httprobe
         run: |
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe > ${{runner.temp}}/httprobe.out
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe --prefer-https > ${{runner.temp}}/httprobe.out
         shell: bash
 
       - name: Run gf
         run: |
-          cat ${{runner.temp}}/httprobe.out | ~/go/bin/gf xss > ${{runner.temp}}/gf-xss.out
+          find . -type f | ~/go/bin/gf base64 > ${{runner.temp}}/gf-base64.out
+        shell: bash
+
+      - name: Run crtsh
+        run: |
+          ~/go/bin/crtsh example.com > ${{runner.temp}}/crtsh.out
+        shell: bash
+
+      - name: Run httpx
+        run: |
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > ${{runner.temp}}/httpx.out
+        shell: bash
+
+      - name: Run waybackurls
+        run: |
+          echo example.com | ~/go/bin/waybackurls > ${{runner.temp}}/waybackurls.out
         shell: bash
 
       - name: Display results
@@ -47,9 +80,21 @@ jobs:
           cat ${{runner.temp}}/httprobe.out
           echo -e "\033[1;34m=== End of HTTProbe Results ===\033[0m\n"
           
-          echo -e "\n\033[1;34m=== GF XSS Results ===\033[0m"
-          cat ${{runner.temp}}/gf-xss.out
-          echo -e "\033[1;34m=== End of GF XSS Results ===\033[0m\n"
+          echo -e "\n\033[1;34m=== GF Base64 Results ===\033[0m"
+          cat ${{runner.temp}}/gf-base64.out
+          echo -e "\033[1;34m=== End of GF Base64 Results ===\033[0m\n"
+
+          echo -e "\n\033[1;34m=== CRTSH Results ===\033[0m"
+          cat ${{runner.temp}}/crtsh.out
+          echo -e "\033[1;34m=== End of CRTSH Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== HTTPX Results ===\033[0m"
+          cat ${{runner.temp}}/httpx.out
+          echo -e "\033[1;34m=== End of HTTPX Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== WaybackURLs Results ===\033[0m"
+          cat ${{runner.temp}}/waybackurls.out
+          echo -e "\033[1;34m=== End of WaybackURLs Results ===\033[0m\n"
         shell: bash
 
       - name: Upload scan results
@@ -59,4 +104,7 @@ jobs:
           path: |
             ${{runner.temp}}/assetfinder.out
             ${{runner.temp}}/httprobe.out
-            ${{runner.temp}}/gf-xss.out
+            ${{runner.temp}}/gf-base64.out
+            ${{runner.temp}}/crtsh.out
+            ${{runner.temp}}/httpx.out
+            ${{runner.temp}}/waybackurls.out
