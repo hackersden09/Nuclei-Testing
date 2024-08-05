@@ -1,11 +1,4 @@
-To address the errors and ensure the correct installation of `dalfox` and other tools, you can update your GitHub Actions workflow as follows:
 
-1. Make sure to install `dalfox` from the source as it might not be available via pip.
-2. Correctly install all necessary tools and dependencies.
-
-Here is the updated workflow:
-
-```yaml
 name: 'Security Tools Scan'
 on:
   push:
