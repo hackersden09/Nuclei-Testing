@@ -38,7 +38,7 @@ jobs:
           go install github.com/jaeles-project/gospider@latest
           go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
           go install github.com/hahwul/dalfox/v2@latest
-          go get github.com/Emoe/kxss
+          go install github.com/Emoe/kxss@latest
 
           # Verify installation of tools
           echo $PATH
