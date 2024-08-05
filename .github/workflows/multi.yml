@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl jq
-          pip3 install waybackpy dalfox gxss
+          pip3 install dalfox gxss
 
       - name: Install Go tools
         run: |
@@ -98,9 +98,6 @@ jobs:
           cat "${{ runner.temp }}/hosth" | ~/go/bin/fff -d 1 -S -o "${{ runner.temp }}/roots"
           ~/go/bin/gf meg-headers < "${{ runner.temp }}/roots"
           ~/go/bin/gf servers < "${{ runner.temp }}/roots" | ~/go/bin/anew "${{ runner.temp }}/gf-servers"
-
-          # Run waybackpy for known URLs
-          waybackpy --url testphp.vulnweb.com --user_agent "my-user-agent" --known_urls > "${{ runner.temp }}/waybackpy.out"
 
           # Run additional security scans
           echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | Gxss -c 100 -p Xss | sort -u | dalfox pipe
