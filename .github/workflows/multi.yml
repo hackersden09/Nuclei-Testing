@@ -1,0 +1,48 @@
+
+name: 'Tomnomnom Tools Scan'
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  tomnomnom-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y golang
+          export GOPATH=$HOME/go
+          export PATH=$PATH:$GOPATH/bin
+          go install github.com/tomnomnom/assetfinder@latest
+          go install github.com/tomnomnom/httprobe@latest
+          go install github.com/tomnomnom/gf@latest
+        shell: bash
+
+      - name: Run assetfinder
+        run: |
+          assetfinder --subs-only ginandjuice.shop > ${{runner.temp}}/assetfinder.out
+        shell: bash
+
+      - name: Run httprobe
+        run: |
+          cat ${{runner.temp}}/assetfinder.out | httprobe > ${{runner.temp}}/httprobe.out
+        shell: bash
+
+      - name: Run gf
+        run: |
+          cat ${{runner.temp}}/httprobe.out | gf xss > ${{runner.temp}}/gf-xss.out
+        shell: bash
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: tomnomnom-tools-results
+          path: |
+            ${{runner.temp}}/assetfinder.out
+            ${{runner.temp}}/httprobe.out
+            ${{runner.temp}}/gf-xss.out
