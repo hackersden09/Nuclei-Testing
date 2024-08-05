@@ -45,6 +45,14 @@ jobs:
           cd ..
         shell: bash
 
+      - name: Verify installation
+        run: |
+          echo $PATH
+          which gxss
+          which dalfox
+          which nuclei
+        shell: bash
+
       - name: Install NucleiFuzzer and Dependencies
         run: |
           # Install NucleiFuzzer
