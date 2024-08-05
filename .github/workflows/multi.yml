@@ -20,16 +20,15 @@ jobs:
         run: |
           export GOPATH=$HOME/go
           export PATH=$PATH:$GOPATH/bin
+
+          # Install Go tools
           go install github.com/tomnomnom/assetfinder@latest
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/waybackurls@latest
           go install github.com/projectdiscovery/httpx/cmd/httpx@latest
           go install github.com/tomnomnom/gf@latest
-          go install github.com/tomnomnom/anew@latest  # Install anew
-
-          # Install fff manually
-          wget https://github.com/rsteube/fff/releases/download/v1.0.0/fff-linux-amd64 -O ~/go/bin/fff
-          chmod +x ~/go/bin/fff
+          go install github.com/tomnomnom/anew@latest
+          go install github.com/tomnomnom/fff@latest
         shell: bash
 
       - name: Run assetfinder
