@@ -62,7 +62,7 @@ jobs:
           go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
         shell: bash
 
-            - name: Install NucleiFuzzer and Dependencies
+      - name: Install NucleiFuzzer and Dependencies
         run: |
           # Install NucleiFuzzer
           git clone https://github.com/0xKayala/NucleiFuzzer.git
@@ -84,8 +84,6 @@ jobs:
           # Install Fuzzing Templates
           git clone https://github.com/0xKayala/fuzzing-templates.git
         shell: bash
-
-
 
       - name: Run assetfinder
         run: |
