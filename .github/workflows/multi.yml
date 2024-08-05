@@ -38,7 +38,7 @@ jobs:
           go install github.com/jaeles-project/gospider@latest
           go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
           go install github.com/hahwul/dalfox/v2@latest
-          go install github.com/KathanP19/Gxss@latest
+          go get github.com/Emoe/kxss
 
           # Verify installation of tools
           echo $PATH
@@ -51,14 +51,14 @@ jobs:
           which fff || echo "fff not found"
           which gospider || echo "gospider not found"
           which nuclei || echo "nuclei not found"
-          which gxss || echo "gxss not found"
+          which kxss || echo "kxss not found"
           which dalfox || echo "dalfox not found"
         shell: bash
 
       - name: Verify installation
         run: |
           echo $PATH
-          which gxss || echo "gxss not found"
+          which kxss || echo "kxss not found"
           which dalfox || echo "dalfox not found"
           which nuclei || echo "nuclei not found"
         shell: bash
@@ -112,11 +112,11 @@ jobs:
           ~/go/bin/gf servers < "${{ runner.temp }}/roots" | ~/go/bin/anew "${{ runner.temp }}/gf-servers"
 
           # Run additional security scans
-          echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | ~/go/bin/gxss -c 100 -p Xss | sort -u | ~/go/bin/dalfox pipe
+          echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | ~/go/bin/kxss -c 100 -p Xss | sort -u | ~/go/bin/dalfox pipe
 
           # Simple Reflected XSS
           ~/go/bin/subfinder -d testphp.vulnweb.com | ~/go/bin/httprobe -c 100 > "${{ runner.temp }}/target.txt"
-          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | ~/go/bin/gf xss | ~/go/bin/kxxs
+          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | ~/go/bin/gf xss | ~/go/bin/kxss
 
           # Wayback URL collecting
           cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls
