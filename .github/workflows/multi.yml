@@ -52,15 +52,14 @@ jobs:
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/anew@latest
           go install github.com/tomnomnom/fff@latest
-          go get -u github.com/tomnomnom/fff
-
+          
           # Install other tools
-          GO111MODULE=on go get -u -v github.com/lc/gau
-          GO111MODULE=on go get -u -v github.com/tomnomnom/qsreplace
-          GO111MODULE=on go get -u -v github.com/jaeles-project/gospider
-          GO111MODULE=on go get -u -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder
-          GO111MODULE=on go get -u -v github.com/projectdiscovery/findomain
-          GO111MODULE=on go get -u -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei
+          go install github.com/lc/gau@latest
+          go install github.com/tomnomnom/qsreplace@latest
+          go install github.com/jaeles-project/gospider@latest
+          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+          go install github.com/projectdiscovery/findomain@latest
+          go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
         shell: bash
 
       - name: Install NucleiFuzzer and Dependencies
