@@ -21,7 +21,6 @@ jobs:
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/waybackurls@latest
-          go install github.com/tomnomnom/me@latest
           
           # Install crtsh
           mkdir -p ~/go/src/github.com/tomnomnom
@@ -50,9 +49,24 @@ jobs:
           cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe --prefer-https > ${{runner.temp}}/httprobe.out
         shell: bash
 
-      - name: Run gf
+      - name: Run gf for base64
         run: |
           find . -type f | ~/go/bin/gf base64 > ${{runner.temp}}/gf-base64.out
+        shell: bash
+      
+      - name: Run gf for xss
+        run: |
+          find . -type f | ~/go/bin/gf xss > ${{runner.temp}}/gf-xss.out
+        shell: bash
+      
+      - name: Run gf for sqli
+        run: |
+          find . -type f | ~/go/bin/gf sqli > ${{runner.temp}}/gf-sqli.out
+        shell: bash
+
+      - name: Run gf for ssrf
+        run: |
+          find . -type f | ~/go/bin/gf ssrf > ${{runner.temp}}/gf-ssrf.out
         shell: bash
 
       - name: Run crtsh
@@ -83,6 +97,18 @@ jobs:
           echo -e "\n\033[1;34m=== GF Base64 Results ===\033[0m"
           cat ${{runner.temp}}/gf-base64.out
           echo -e "\033[1;34m=== End of GF Base64 Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== GF XSS Results ===\033[0m"
+          cat ${{runner.temp}}/gf-xss.out
+          echo -e "\033[1;34m=== End of GF XSS Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== GF SQLi Results ===\033[0m"
+          cat ${{runner.temp}}/gf-sqli.out
+          echo -e "\033[1;34m=== End of GF SQLi Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== GF SSRF Results ===\033[0m"
+          cat ${{runner.temp}}/gf-ssrf.out
+          echo -e "\033[1;34m=== End of GF SSRF Results ===\033[0m\n"
 
           echo -e "\n\033[1;34m=== CRTSH Results ===\033[0m"
           cat ${{runner.temp}}/crtsh.out
@@ -105,6 +131,9 @@ jobs:
             ${{runner.temp}}/assetfinder.out
             ${{runner.temp}}/httprobe.out
             ${{runner.temp}}/gf-base64.out
+            ${{runner.temp}}/gf-xss.out
+            ${{runner.temp}}/gf-sqli.out
+            ${{runner.temp}}/gf-ssrf.out
             ${{runner.temp}}/crtsh.out
             ${{runner.temp}}/httpx.out
             ${{runner.temp}}/waybackurls.out
