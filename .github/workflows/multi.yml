@@ -78,13 +78,14 @@ jobs:
           # Install Nuclei
           git clone https://github.com/projectdiscovery/nuclei.git
           cd nuclei
-          go build
+          go build -o nuclei
           sudo mv nuclei /usr/local/bin/
           cd ..
 
           # Install Fuzzing Templates
           git clone https://github.com/0xKayala/fuzzing-templates.git
         shell: bash
+
 
       - name: Run assetfinder
         run: |
