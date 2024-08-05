@@ -39,12 +39,17 @@ jobs:
 
       - name: Display results
         run: |
-          echo "Assetfinder Results:"
+          echo -e "\n\033[1;34m=== Assetfinder Results ===\033[0m"
           cat ${{runner.temp}}/assetfinder.out
-          echo "HTTProbe Results:"
+          echo -e "\033[1;34m=== End of Assetfinder Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== HTTProbe Results ===\033[0m"
           cat ${{runner.temp}}/httprobe.out
-          echo "GF XSS Results:"
+          echo -e "\033[1;34m=== End of HTTProbe Results ===\033[0m\n"
+          
+          echo -e "\n\033[1;34m=== GF XSS Results ===\033[0m"
           cat ${{runner.temp}}/gf-xss.out
+          echo -e "\033[1;34m=== End of GF XSS Results ===\033[0m\n"
         shell: bash
 
       - name: Upload scan results
