@@ -57,8 +57,13 @@ jobs:
           go install github.com/lc/gau@latest
           go install github.com/tomnomnom/qsreplace@latest
           go install github.com/jaeles-project/gospider@latest
-          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-          go install github.com/projectdiscovery/findomain@latest
+          
+          # Install findomain
+          wget https://github.com/Findomain/Findomain/releases/download/1.20.0/findomain-linux -O findomain
+          chmod +x findomain
+          sudo mv findomain /usr/local/bin/
+          
+          # Install nuclei
           go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
         shell: bash
 
