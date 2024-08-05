@@ -1,4 +1,4 @@
-name: 'Hackersden Tools Scan'
+name: 'Tomnomnom Tools Scan'
 on:
   push:
     branches: ["main"]
@@ -23,10 +23,9 @@ jobs:
           go install github.com/tomnomnom/waybackurls@latest
           
           # Install crtsh
-          mkdir -p ~/go/src/github.com/tomnomnom
-          cd ~/go/src/github.com/tomnomnom
-          git clone https://github.com/tomnomnom/assetfinder.git
-          cd assetfinder
+          mkdir -p ~/go/src/github.com/tomnomnom/crtsh
+          curl -o ~/go/src/github.com/tomnomnom/crtsh/crtsh.go https://raw.githubusercontent.com/tomnomnom/assetfinder/master/crtsh.go
+          cd ~/go/src/github.com/tomnomnom/crtsh
           go build -o ~/go/bin/crtsh crtsh.go
           
           # Install httpx
@@ -98,7 +97,7 @@ jobs:
           cat ${{runner.temp}}/gf-base64.out
           echo -e "\033[1;34m=== End of GF Base64 Results ===\033[0m\n"
           
-          echo -e "\n\033[1;34m=== GF XSS Results ===\033[0m"
+          echo -e "\n\033[1;34m=== GF XSS Results ===\033{0m"
           cat ${{runner.temp}}/gf-xss.out
           echo -e "\033[1;34m=== End of GF XSS Results ===\033[0m\n"
           
