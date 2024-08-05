@@ -24,11 +24,12 @@ jobs:
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/waybackurls@latest
           go install github.com/projectdiscovery/httpx/cmd/httpx@latest
-          
-          # Install additional tools
-          sudo apt-get update
-          sudo apt-get install -y anew fff
           go install github.com/tomnomnom/gf@latest
+          go install github.com/tomnomnom/anew@latest  # Install anew
+
+          # Install fff manually
+          wget https://github.com/rsteube/fff/releases/download/v1.0.0/fff-linux-amd64 -O ~/go/bin/fff
+          chmod +x ~/go/bin/fff
         shell: bash
 
       - name: Run assetfinder
@@ -53,11 +54,11 @@ jobs:
 
       - name: Additional Commands
         run: |
-          cat ${{runner.temp}}/httprobe.out | anew ${{runner.temp}}/domains
-          cat ${{runner.temp}}/domains | ~/go/bin/httprobe -c 50 | anew ${{runner.temp}}/hosth
-          cat ${{runner.temp}}/hosth | fff -d 1 -S -o ${{runner.temp}}/roots
+          cat ${{runner.temp}}/httprobe.out | ~/go/bin/anew ${{runner.temp}}/domains
+          cat ${{runner.temp}}/domains | ~/go/bin/httprobe -c 50 | ~/go/bin/anew ${{runner.temp}}/hosth
+          cat ${{runner.temp}}/hosth | ~/go/bin/fff -d 1 -S -o ${{runner.temp}}/roots
           ~/go/bin/gf meg-headers < ${{runner.temp}}/roots
-          ~/go/bin/gf servers < ${{runner.temp}}/roots | anew ${{runner.temp}}/gf-servers
+          ~/go/bin/gf servers < ${{runner.temp}}/roots | ~/go/bin/anew ${{runner.temp}}/gf-servers
         shell: bash
 
       - name: Display results
