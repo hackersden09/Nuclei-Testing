@@ -62,15 +62,6 @@ jobs:
           go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
         shell: bash
 
-      - name: Install Findomain
-        run: |
-          # Get the latest release version from GitHub
-          LATEST_RELEASE=$(curl -s https://api.github.com/repos/Findomain/Findomain/releases/latest | jq -r '.tag_name')
-          wget https://github.com/Findomain/Findomain/releases/download/${LATEST_RELEASE}/findomain-linux -O findomain
-          chmod +x findomain
-          sudo mv findomain /usr/local/bin/
-        shell: bash
-
       - name: Install NucleiFuzzer and Dependencies
         run: |
           # Install NucleiFuzzer
