@@ -59,7 +59,5 @@ jobs:
           cat ${{runner.temp}}/httprobe.out
           cat ${{runner.temp}}/gf-xss.out
 
-          
-        shell: bash
-
+        
         
