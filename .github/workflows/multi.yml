@@ -20,24 +20,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl jq git
-          # Check if Gxss is available via pip
-          pip3 install gxss || true
-          # Clone and check for any setup instructions for Gxss
-          git clone https://github.com/KathanP19/Gxss.git
-          cd Gxss
-          if [ -f "setup.py" ]; then
-            python3 setup.py install
-          else
-            echo "No setup.py found, manual installation may be required."
-          fi
-          cd ..
 
       - name: Install Go tools
         run: |
           export GOPATH=$HOME/go
           export PATH=$PATH:$GOPATH/bin
 
-          # Install Go tools
+          # Install Go tools using go install with versions
           go install github.com/tomnomnom/assetfinder@latest
           go install github.com/tomnomnom/httprobe@latest
           go install github.com/tomnomnom/waybackurls@latest
@@ -45,12 +34,8 @@ jobs:
           go install github.com/tomnomnom/gf@latest
           go install github.com/tomnomnom/anew@latest
           go install github.com/tomnomnom/fff@latest
+          go install github.com/jaeles-project/gospider@latest
           go install github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
-
-          # Go Get is deprecated, so ensure usage of go install for tools
-          go get -u github.com/tomnomnom/qsreplace
-          go get -u github.com/jaeles-project/gospider
-
         shell: bash
 
       - name: Install NucleiFuzzer and Dependencies
