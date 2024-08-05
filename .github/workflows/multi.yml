@@ -20,12 +20,16 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl jq
+
+      - name: Install gxss
+        run: |
           git clone https://github.com/KathanP19/Gxss
           cd Gxss
-          go build
+          go build -o gxss
           sudo mv gxss /usr/local/bin/
           cd ..
           rm -rf Gxss
+        shell: bash
 
       - name: Install dalfox
         run: |
