@@ -82,24 +82,34 @@ jobs:
           git clone https://github.com/0xKayala/fuzzing-templates.git
         shell: bash
 
-      - name: Run assetfinder
+      - name: Collect Subdomains
         run: |
-          ~/go/bin/assetfinder --subs-only testphp.vulnweb.com > "${{ runner.temp }}/assetfinder.out"
+          # Run assetfinder and subfinder to collect subdomains
+          ~/go/bin/assetfinder --subs-only testphp.vulnweb.com | ~/go/bin/anew subdomain.txt
+          ~/go/bin/subfinder -d testphp.vulnweb.com | ~/go/bin/anew subdomain.txt
         shell: bash
 
       - name: Run httprobe
         run: |
-          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/httprobe -c 50 > "${{ runner.temp }}/httprobe.out"
+          cat subdomain.txt | ~/go/bin/httprobe -c 50 > "${{ runner.temp }}/httprobe.out"
         shell: bash
+
 
       - name: Run waybackurls
         run: |
-          echo testphp.vulnweb.com | ~/go/bin/waybackurls > "${{ runner.temp }}/waybackurls.out"
+          echo testphp.vulnweb.com | ~/go/bin/waybackurls | sort -u > "${{ runner.temp }}/waybackurls.out"
         shell: bash
 
       - name: Run httpx
         run: |
-          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > "${{ runner.temp }}/httpx.out"
+          cat subdomain.txt | ~/go/bin/httpx -ports 80,443,8080,8443 -title -status-code -json > "${{ runner.temp }}/httpx.out"
+        shell: bash
+
+      - name: Run NucleiFuzzer on Subdomains
+        run: |
+          cd NucleiFuzzer
+          nf -l ../subdomain.txt -o ../fuzzer_output.txt
+          cd ..
         shell: bash
 
       - name: Run additional tools
@@ -107,7 +117,7 @@ jobs:
           export PATH=$PATH:$HOME/go/bin
 
           # Additional commands
-          cat "${{ runner.temp }}/assetfinder.out" | ~/go/bin/anew "${{ runner.temp }}/domains"
+          cat subdomain.txt | ~/go/bin/anew "${{ runner.temp }}/domains"
           cat "${{ runner.temp }}/domains" | ~/go/bin/httprobe -c 50 | ~/go/bin/anew "${{ runner.temp }}/hosth"
           cat "${{ runner.temp }}/hosth" | ~/go/bin/fff -d 1 -S -o "${{ runner.temp }}/roots"
           ~/go/bin/gf meg-headers < "${{ runner.temp }}/roots"
