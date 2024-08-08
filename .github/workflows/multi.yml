@@ -137,5 +137,7 @@ jobs:
           cat "${{ runner.temp }}/waybackurls.out" | grep '=' | ~/go/bin/qsreplace '"><svg/onload=alert(1337)>' | while read host; do curl -s --path-as-is --insecure "$host" | grep -qs "<svg/onload=alert(1337)>" && echo "$host \033[0;31mVulnerable"; done | tee "${{ runner.temp }}/step_xss_one_liner.txt"
 
           # Collect JS files using gau
-          ~/go/bin/gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee "${{ runner.temp }}/urls.txt"
-          sort -u "${
+          ~/go/bin/gau -subs testphp.vulnweb.com | cut -d"?" -f1 | grep -E "\\.js(?:onp?)?$" | tee "${{ runner.temp }}/urls.txt". 
+
+          # Sort and save only unique URLs
+          sort -u "${{ runner.temp }}/urls.txt" > "${{ runner.temp }}/unique_urls.txt"
